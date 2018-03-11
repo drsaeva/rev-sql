@@ -75,4 +75,41 @@ WHERE FIRSTNAME='Robert' AND LASTNAME='Walter';
 
 --Could also use ALTER TABLE to add DELETE ON CASCADE to the FK references in CUSTOMER (and INVOICE if needed)
 
+/* 3.0 SQL Functions */
 
+/* 3.1 System Defined Functions */
+--Function that returns the current time
+CREATE OR REPLACE FUNCTION The_Time_Please
+    return varchar2
+IS
+    the_time    varchar2(20) := to_char(SYSDATE, 'HH24:MI:SS' );
+    the_message varchar2(30) := 'The current time is : ' || the_time;
+BEGIN
+    dbms_output.put_line( the_message );
+    return the_message;
+END;
+/
+
+SELECT The_Time_Please FROM dual;
+
+--function that returns the length of a mediatype from the mediatype table
+
+CREATE OR REPLACE FUNCTION MEDIATYPE_NAME_LENGTH ( MEDIATYPEID_ARG number )
+    RETURN number
+IS  
+    MEDIA_NAME     varchar2(20); 
+    NAME_LENGTH    number(20);
+    CURSOR c1 is SELECT NAME FROM MEDIATYPE WHERE MEDIATYPEID=MEDIATYPEID_ARG;
+BEGIN
+    OPEN c1;
+    FETCH c1 INTO MEDIA_NAME;
+    CLOSE c1;
+    NAME_LENGTH := LENGTH(MEDIA_NAME);
+
+RETURN NAME_LENGTH;
+END;
+/
+
+SELECT MEDIATYPE_NAME_LENGTH(1) FROM DUAL;
+
+/* 3.2 System Defined Aggregate Functions */
