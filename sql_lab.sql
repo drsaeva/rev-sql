@@ -113,3 +113,78 @@ END;
 SELECT MEDIATYPE_NAME_LENGTH(1) FROM DUAL;
 
 /* 3.2 System Defined Aggregate Functions */
+--Create a function that returns the average total of all invoices
+CREATE OR REPLACE FUNCTION AVG_INVOICE_TOTAL
+    RETURN number
+IS  
+    AVG_TOTAL    number(5);
+    CURSOR c1 is SELECT AVG(TOTAL) FROM INVOICE;
+BEGIN
+    OPEN c1;
+    FETCH c1 INTO AVG_TOTAL;
+    CLOSE c1;
+RETURN AVG_TOTAL;
+END;
+/
+
+SELECT AVG_INVOICE_TOTAL FROM DUAL;
+
+--Create a function that returns the most expensive track
+CREATE OR REPLACE FUNCTION MOST_EXP_TRACK
+    RETURN number
+IS  
+    MOST_EXP    number(5);
+    CURSOR c1 is SELECT MAX(UNITPRICE) FROM TRACK;
+BEGIN
+    OPEN c1;
+    FETCH c1 INTO MOST_EXP;
+    CLOSE c1;
+RETURN MOST_EXP;
+END;
+/
+
+SELECT MOST_EXP_TRACK FROM DUAL;
+
+/* 3.3 User Defined Scalar Functions */
+--Creat a function that returns the average price of invoiceline items in invoiceline
+CREATE OR REPLACE FUNCTION AVG_TRACK_IN_INVOICE ( INVOICEID_ARG NUMBER )
+    RETURN number
+IS  
+    AVG_PRICE    number(5);
+    CURSOR c1 is SELECT AVG(UNITPRICE) FROM INVOICELINE WHERE INVOICEID=INVOICEID_ARG;
+BEGIN
+    OPEN c1;
+    FETCH c1 INTO AVG_PRICE;
+    CLOSE c1;
+RETURN AVG_PRICE;
+END;
+/
+
+SELECT AVG_TRACK_IN_INVOICE(123) FROM DUAL;
+
+/* 3.4 User Defined Table Valued Functions */
+--Create a function that returns all employees born after 1968
+
+CREATE OR REPLACE TYPE T_YOUNG_EMPL AS OBJECT (
+    EMPLOYEEID          NUMBER,       
+    LASTNAME            VARCHAR2(20), 
+    FIRSTNAME           VARCHAR2(20)
+);
+/
+CREATE OR REPLACE TYPE T_YOUNG_EMPLS AS TABLE OF T_YOUNG_EMPLOYEE;
+/
+CREATE OR REPLACE FUNCTION GET_YOUNG_EMPLOYEES
+        RETURN T_YOUNG_EMPLS
+        PIPELINED IS
+BEGIN
+    FOR I IN (SELECT EMPLOYEEID, LASTNAME, FIRSTNAME FROM EMPLOYEE WHERE BIRTHDATE > '31-DEC-68') LOOP
+        PIPE ROW (T_YOUNG_EMPL(I.EMPLOYEEID, I.EMPLOYEE.LASTNAME, I.EMPLOYEE.FIRSTNAME));
+    END LOOP;
+    RETURN;
+END;
+/
+
+/* 4.0 Stored Procedures */
+/* 41. Basic Stored Procedures */
+--Create a SP that updates the first and last names of all the employees
+
