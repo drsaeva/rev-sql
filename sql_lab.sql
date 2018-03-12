@@ -185,6 +185,148 @@ END;
 /
 
 /* 4.0 Stored Procedures */
-/* 41. Basic Stored Procedures */
---Create a SP that updates the first and last names of all the employees
+/* 4.1 Basic Stored Procedures */
+--Create a SP that selects the first and last names of all the employees
+CREATE OR REPLACE PROCEDURE GET_EMPL_NAMES(CURSOR_ OUT SYS_REFCURSOR)
+AS BEGIN
+OPEN CURSOR_ FOR
+SELECT LASTNAME, FIRSTNAME FROM EMPLOYEE;
+END;
+/
 
+/* 4.2 Stored Procedure Input Parameters */
+--create a SP that updates employee personal info
+CREATE OR REPLACE PROCEDURE EMPLOYEE_ (EMPLOYEEID_ARG NUMBER, NEW_ADDRESS VARCHAR2, NEW_CITY VARCHAR2, NEW_STATE VARCHAR2)
+AS BEGIN
+    UPDATE EMPLOYEE SET ADDRESS=NEW_ADDRESS, CITY=NEW_CITY, STATE=NEW_STATE WHERE EMPLOYEEID=EMPLOYEEID_ARG;
+END;
+/
+
+--create a SP that returns the managers of an employee
+CREATE OR REPLACE PROCEDURE GET_EMPL_MNGRS(LASTNAME_ARG VARCHAR2, FIRSTNAME_ARG VARCHAR2, CURSOR_ OUT SYS_REFCURSOR)
+AS BEGIN
+OPEN CURSOR_ FOR
+    SELECT LASTNAME, FIRSTNAME FROM EMPLOYEE WHERE EMPLOYEEID=(SELECT REPORTSTO 
+            FROM EMPLOYEE WHERE LASTNAME=LASTNAME_ARG AND FIRSTNAME=FIRSTNAME_ARG);
+END;
+/
+
+/* 4.3 Stored Procedure Output Parameters */
+--create a SP that returns the name and company of a customer
+CREATE OR REPLACE PROCEDURE GET_CUST_INFO(LASTNAME_ARG VARCHAR2, CURSOR_ OUT SYS_REFCURSOR)
+AS BEGIN
+OPEN CURSOR_ FOR
+    SELECT LASTNAME, FIRSTNAME,COMPANY FROM CUSTOMER WHERE LASTNAME=LASTNAME_ARG;
+END;
+/
+
+
+/* 5.0 Transactions */
+--create a transaction that will delete an invoice and all relationally-constrained records given the invoiceid
+CREATE OR REPLACE PROCEDURE DELETE_INVOICE(INVOICEID_ARG NUMBER)
+AS
+BEGIN
+    SAVEPOINT sp_new;
+    
+    DELETE FROM INVOICELINE WHERE INVOICEID=INVOICEID_ARG;
+    DELETE FROM INVOICE WHERE INVOICEID=INVOICEID_ARG;
+    
+    COMMIT;
+    
+EXCEPTION
+    WHEN OTHERS THEN
+    ROLLBACK TO sp_new;
+    RAISE;
+END;
+/
+
+--create a transaction nested within a SP that inserts a new record in Customer
+CREATE OR REPLACE PROCEDURE NEW_CUST(CUSTOMERID_ARG NUMBER, FIRSTNAME_ARG VARCHAR2, LASTNAME_ARG VARCHAR2, EMAIL_ARG VARCHAR2)
+AS
+BEGIN
+    SAVEPOINT sp_new;
+    
+    INSERT INTO CUSTOMER (CUSTOMERID, FIRSTNAME, LASTNAME, EMAIL) 
+        VALUES (CUSTOMERID_ARG, FIRSTNAME_ARG, LASTNAME_ARG, EMAIL_ARG)
+        
+    COMMIT;
+
+EXCEPTION
+    WHEN OTHERS THEN
+    ROLLBACK TO sp_new;
+    RAISE;
+END;
+/
+
+/* 6.0 Triggers */
+/* 6.1 AFTER/FOR */
+--create an after insert trigger on employee fired after a new record is inserted into the table
+CREATE OR REPLACE TRIGGER NOTIFY_NEW_EMP AFTER INSERT ON EMPLOYEE
+FOR EACH ROW 
+BEGIN
+    DBMS_OUTPUT.ENABLE;
+    DBMS_OUTPUT.PUT_LINE('new record inserted');
+END;
+/
+
+DBMS_OUTPUT.PRINT_LN;
+/
+
+--create an after update trigger on album that fires after a row is update
+CREATE OR REPLACE TRIGGER NOTIFY_ALB_UPD AFTER UPDATE ON ALBUM
+FOR EACH ROW 
+BEGIN
+    DBMS_OUTPUT.ENABLE;
+    DBMS_OUTPUT.PUT_LINE('record in album updated');
+END;
+/
+
+DBMS_OUTPUT.GET_LINES;
+
+--create or replace a delete trigger that fires after a row is deleted from customer
+CREATE OR REPLACE TRIGGER NOTIFY_CUST_DEL AFTER DELETE ON CUSTOMER
+FOR EACH ROW 
+BEGIN
+    DBMS_OUTPUT.ENABLE;
+    DBMS_OUTPUT.PUT_LINE('record in customer deleted');
+END;
+/
+
+DBMS_OUTPUT.GET_LINES;
+
+
+/* JOINS */
+/* 7.1 INNER */
+--create an inner join for customers and orders specifying the name of the customer and invoiceid
+SELECT C.LASTNAME, C.FIRSTNAME, I.INVOICEID
+    FROM CUSTOMER C
+    JOIN INVOICE I
+    ON C.CUSTOMERID = I.CUSTOMERID;
+    
+/* 7.2 OUTER */
+--create an outer join tat joins customer and invoice, specifying customerid, firstname, lastname, invoiceid, total
+SELECT C.CUSTOMERID, C.LASTNAME, C.FIRSTNAME, I.INVOICEID, I.TOTAL
+    FROM CUSTOMER C
+    FULL OUTER JOIN INVOICE I
+    ON C.CUSTOMERID = I.CUSTOMERID;
+
+/* 7.3 RIGHT */
+--create a right join that joins album and artist specifying artist name and title
+SELECT AR.NAME, AL.TITLE
+    FROM ARTIST AR
+    RIGHT JOIN ALBUM AL
+    ON AR.ARTISTID = AL.ARTISTID;
+    
+/* 7.4 CROSS */
+--create a cross join that joins album and artist, sort by artist name in asc order
+SELECT *
+    FROM ARTIST AR
+    CROSS JOIN ALBUM AL
+    ORDER BY AR.NAME ASC;
+
+/* 7.5 SELF */
+--peform a self join on employee, joining to reportsto
+SELECT E1.LASTNAME||' works for '||E2.LASTNAME
+   "Employees and Their Managers"
+    FROM EMPLOYEE E1, EMPLOYEE E2
+    WHERE E2.REPORTSTO=E1.EMPLOYEEID;
