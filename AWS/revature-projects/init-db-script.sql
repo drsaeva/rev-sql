@@ -50,10 +50,16 @@ BEGIN
     FROM DUAL;
 END;
 /
+--Customers view of users with access_level=-1 (Customer-level permissions)
+CREATE VIEW customers AS
+  SELECT id,username
+  FROM users
+  WHERE access_level=-1;
+/
 
---Users-Accounts Joining table
-CREATE TABLE users_accounts (
-    user_id     NUMBER(5), CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES users(id),
+--Customers-Accounts Joining table
+CREATE TABLE customers_accounts (
+    customer_id NUMBER(5), CONSTRAINT fk_user_id FOREIGN KEY (customer_id) REFERENCES users(id),
     account_id  NUMBER(5), CONSTRAINT fk_acct_id FOREIGN KEY (account_id) REFERENCES accounts(id)
 );
 /
