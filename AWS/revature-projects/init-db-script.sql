@@ -102,3 +102,33 @@ BEGIN
     UPDATE applications SET active=0 WHERE status!=0;
 END;
 /
+
+--------------------------------------------------------
+
+/* INITIALIZE DEFAULT DB DATA */
+--Default Users 1 admin (Jane Doe), 1 Employee (Josef Bonn), and 3 Customers (Donald Moretti, Maeve Bonn, Steven Bonn)
+INSERT ALL
+    INTO users (username, userpw, fullname, access_level) VALUES ('JDoe0516', 'J@n3m0n3y!', 'Jane Doe', 1)
+    INTO users (username, userpw, fullname, access_level) VALUES ('JoeBonn89', 'Pizz@Bar0n', 'Josef Bonn', 0)
+    INTO users (username, userpw, fullname, access_level) VALUES ('Donn13Mo', 'M0oser3ady!', 'Donald Moretti', -1)
+    INTO users (username, userpw, fullname, access_level) VALUES ('MaeveB89', '@St3viesM0m', 'Maeve Bonn', -1)
+    INTO users (username, userpw, fullname, access_level) VALUES ('Stevie123', 'Iliketurtles1!', 'Steven Bonn', -1)
+SELECT * FROM DUAL;
+/
+
+--Default Accounts: single account (Donald Moretti), single account (Maeve Bonn), join account (Maeve Bonn and Steven Bonn)
+INSERT ALL
+    INTO accounts (num, owner_count, balance, active) VALUES (1225480907, 1, 1256.13, 1)
+    INTO accounts (num, owner_count, balance, active) VALUES (2365598772, 1, 3603.47, 1)
+    INTO accounts (num, owner_count, balance, active) VALUES (8810305410, 2, 25.64, 1)
+SELECT * FROM DUAL;
+/
+
+--Prepopulate Customers_Accounts Joining table
+INSERT ALL 
+    INTO customers_accounts (customer_id, account_id) VALUES (4, 1)
+    INTO customers_accounts (customer_id, account_id) VALUES (5, 2)
+    INTO customers_accounts (customer_id, account_id) VALUES (5, 3)
+    INTO customers_accounts (customer_id, account_id) VALUES (6, 3)
+SELECT * FROM DUAL;
+/
