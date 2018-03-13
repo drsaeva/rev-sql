@@ -1,3 +1,4 @@
+--Accounts table
 CREATE TABLE accounts (
     id              NUMBER(5)   PRIMARY KEY,
     num             NUMBER(10)  UNIQUE NOT NULL,
@@ -6,8 +7,21 @@ CREATE TABLE accounts (
     active          NUMBER(1)
 );
 /
---TODO - create Sequence for aaccount id
+--Accounts - auto-incrementing primary key sequence and trigger
+CREATE SEQUENCE accounts_seq START WITH 1;
+    
+CREATE OR REPLACE TRIGGER accounts_id_inc
+BEFORE INSERT ON accounts
+FOR EACH ROW
 
+BEGIN
+    SELECT accounts_seq.NEXTVAL
+    INTO :new.id
+    FROM DUAL;
+END;
+/
+
+--Users table 
 CREATE TABLE users (
     id              NUMBER(5)     PRIMARY KEY,
     username        VARCHAR2(8)   UNIQUE    NOT NULL,
@@ -16,15 +30,28 @@ CREATE TABLE users (
     access_level    NUMBER(1)     CONSTRAINT alvl_limits CHECK (access_level < 2 OR access_level > -2)
 );
 /
+--Users - auto-incrementing primary key sequence and trigger
+CREATE SEQUENCE users_seq START WITH 1;
+    
+CREATE OR REPLACE TRIGGER users_id_inc
+BEFORE INSERT ON users
+FOR EACH ROW
 
---TODO - create Sequence for user id
+BEGIN
+    SELECT users_seq.NEXTVAL
+    INTO :new.id
+    FROM DUAL;
+END;
+/
 
+--Users-Accounts Joining table
 CREATE TABLE users_accounts (
     user_id     NUMBER(5), CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES users(id),
     account_id  NUMBER(5), CONSTRAINT fk_acct_id FOREIGN KEY (account_id) REFERENCES accounts(id)
 );
 /
 
+--Applications table
 CREATE TABLE applications (
     id              NUMBER(5)   PRIMARY KEY,
     username        VARCHAR2(8) UNIQUE  NOT NULL,
@@ -34,12 +61,31 @@ CREATE TABLE applications (
     active          NUMBER(1)   CONSTRAINT  active_limit CHECK (active = 1 OR active = 0)
 );
 /
---TODO - create Sequence for application id
+--Applications - auto-incrementing primary key sequence and trigger
+CREATE SEQUENCE applications_seq START WITH 1;
+    
+CREATE OR REPLACE TRIGGER applications_id_inc
+BEFORE INSERT ON applications
+FOR EACH ROW
 
+BEGIN
+    SELECT applications_seq.NEXTVAL
+    INTO :new.id
+    FROM DUAL;
+END;
+/
+
+--Applications View for Open Applications only
 CREATE VIEW open_applications AS
   SELECT username, status, joint, joint_acc_num
   FROM applications
   WHERE active=1;
 /
---TODO - create Trigger or Procedure to inactivate applications when status changes from 0
+--Trigger firing after updates to applications, inactivating applications with an approved (1) or denied (-1) status flag
+CREATE OR REPLACE TRIGGER app_den_apps_inactive
+AFTER UPDATE ON applications
 
+BEGIN
+    UPDATE applications SET active=0 WHERE status!=0;
+END;
+/
