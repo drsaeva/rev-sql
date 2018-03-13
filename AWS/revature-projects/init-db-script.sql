@@ -51,8 +51,8 @@ BEGIN
 END;
 /
 --Customers view of users with access_level=-1 (Customer-level permissions)
-CREATE VIEW customers AS
-  SELECT id,username
+CREATE OR REPLACE VIEW customers AS
+  SELECT id,username,fullname
   FROM users
   WHERE access_level=-1;
 /
