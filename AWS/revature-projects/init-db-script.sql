@@ -20,6 +20,13 @@ BEGIN
     FROM DUAL;
 END;
 /
+-- Transfer Procedure
+CREATE OR REPLACE PROCEDURE transfer_funds(account_from NUMBER, account_to NUMBER, amount NUMBER)
+AS BEGIN
+    UPDATE ACCOUNTS SET balance=balance-amount WHERE num=account_from;
+    UPDATE ACCOUNTS SET balance=balance+amount WHERE num=account_to;
+END;
+/
 
 --Users table 
 CREATE TABLE users (
